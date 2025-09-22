@@ -1,4 +1,3 @@
-# docalysis_api.py
 
 import json
 import requests
