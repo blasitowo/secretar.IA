@@ -19,7 +19,6 @@ ventana = tk.Tk()
 ventana.title("Enviar mensaje a Docalysis")
 ventana.geometry("400x300")
 
-# Elementos GUI
 label = tk.Label(ventana, text="Escribe tu mensaje:")
 label.pack(pady=10)
 

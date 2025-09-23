@@ -69,3 +69,20 @@ class DocalysisAPI:
         payload = {'message': message}
         response = DocalysisAPI.make_request("GET", f"files/{file_id}/chat", payload)
         return response.get("response", "No hubo respuesta del chat.")
+
+    @staticmethod
+    def chat_with_directory(message):
+        url = "https://api1.docalysis.com/api/v1/directories/ddy618/chat"
+        headers = {
+            "Authorization": "Bearer ajblfajg56w3sji555ig4oumvy5dmbp4",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "message": message + " no incluyas numeros de pagina, ni el origen de la respuesta."
+        }
+        response = requests.get(
+            url,
+            headers=headers,
+            data=json.dumps(data)
+        )
+        return response.text
