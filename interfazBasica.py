@@ -1,7 +1,7 @@
-
 import tkinter as tk
 from tkinter import messagebox
 import conexionApi
+
 
 def on_send():
     mensaje = text_input.get("1.0", tk.END).strip()
@@ -14,6 +14,7 @@ def on_send():
         messagebox.showinfo("Resultado", resultado)
     else:
         messagebox.showwarning("Campo vacío", "Escribe un mensaje antes de enviar.")
+
 
 ventana = tk.Tk()
 ventana.title("Enviar mensaje a Docalysis")

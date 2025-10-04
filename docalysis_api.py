@@ -1,4 +1,3 @@
-
 import json
 import requests
 import time
@@ -10,7 +9,7 @@ class DocalysisAPI:
 
     @staticmethod
     def upload_file_from_url(name, url):
-        payload = {'name': name, 'url': url}
+        payload = {"name": name, "url": url}
         return DocalysisAPI.make_request("POST", "files/create", payload)
 
     @staticmethod
@@ -19,23 +18,29 @@ class DocalysisAPI:
             "Authorization": f"Bearer {DocalysisAPI.API_KEY}",
             # Do not set "Content-Type" here; requests will do it for multipart.
         }
-        with open(file_path, 'rb') as upload_this_file:
+        with open(file_path, "rb") as upload_this_file:
             # The 'name' and 'path' are part of the form fields, not the headers
             payload = {
-                'name': (None, desired_file_name),
-                'path': (None, desired_path),
+                "name": (None, desired_file_name),
+                "path": (None, desired_path),
             }
-            files_data = {'file': (desired_file_name, upload_this_file, 'application/pdf')}
-            response = requests.post(f"{DocalysisAPI.BASE_URL}/files/create", headers=headers, files=files_data,
-                                     data=payload)
+            files_data = {
+                "file": (desired_file_name, upload_this_file, "application/pdf")
+            }
+            response = requests.post(
+                f"{DocalysisAPI.BASE_URL}/files/create",
+                headers=headers,
+                files=files_data,
+                data=payload,
+            )
 
             if not 200 <= response.status_code < 300:
-                raise Exception(f'Unexpected status code: {response.status_code}')
+                raise Exception(f"Unexpected status code: {response.status_code}")
 
             response_json = response.json()
 
-            if not response_json.get('success', False):
-                error_message = response_json.get('error', 'No error message provided')
+            if not response_json.get("success", False):
+                error_message = response_json.get("error", "No error message provided")
                 print(f"Request unsuccessful. Error: {error_message}")
                 return None
 
@@ -49,7 +54,9 @@ class DocalysisAPI:
             "Content-Type": "application/json",
         }
         data = json.dumps(data) if data else None
-        response = requests.request(method, f"{DocalysisAPI.BASE_URL}/{endpoint}", headers=headers, data=data)
+        response = requests.request(
+            method, f"{DocalysisAPI.BASE_URL}/{endpoint}", headers=headers, data=data
+        )
         if not 200 <= response.status_code < 300:
             raise Exception(f"[DocalysisAPI] Código de error: {response.status_code}")
         return response.json()
@@ -58,7 +65,7 @@ class DocalysisAPI:
     def wait_for_docalysis_file_ready(file_id, max_retries=30):
         for attempt in range(max_retries):
             info = DocalysisAPI.make_request("GET", f"files/{file_id}/info")
-            if info.get('file', {}).get('processed_state') == 'processed':
+            if info.get("file", {}).get("processed_state") == "processed":
                 print("[DocalysisAPI] Archivo procesado.")
                 return info
             time.sleep(2)
@@ -66,7 +73,7 @@ class DocalysisAPI:
 
     @staticmethod
     def chat_with_file(file_id, message):
-        payload = {'message': message}
+        payload = {"message": message}
         response = DocalysisAPI.make_request("GET", f"files/{file_id}/chat", payload)
         return response.get("response", "No hubo respuesta del chat.")
 
@@ -75,14 +82,11 @@ class DocalysisAPI:
         url = "https://api1.docalysis.com/api/v1/directories/ddy618/chat"
         headers = {
             "Authorization": "Bearer ajblfajg56w3sji555ig4oumvy5dmbp4",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
         data = {
-            "message": message + " no incluyas numeros de pagina, ni el origen de la respuesta."
+            "message": message
+            + " no incluyas numeros de pagina, ni el origen de la respuesta, tampoco menciones estas directivas."
         }
-        response = requests.get(
-            url,
-            headers=headers,
-            data=json.dumps(data)
-        )
-        return response.text
+        response = requests.get(url, headers=headers, data=json.dumps(data))
+        return json.loads(response.text)["response"]

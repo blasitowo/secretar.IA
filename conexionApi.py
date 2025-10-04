@@ -1,5 +1,5 @@
-
 from docalysis_api import DocalysisAPI
+
 
 def enviar_mensaje_completo(mensaje):
     try:
@@ -20,7 +20,7 @@ def enviar_mensaje_completo(mensaje):
         # chatear con archivo
         # respuesta = DocalysisAPI.chat_with_file(file_id, mensaje)
 
-        #chatear con directorio
+        # chatear con directorio
         respuesta = DocalysisAPI.chat_with_directory(mensaje)
 
         return f"Respuesta de Docalysis:\n{respuesta}"
