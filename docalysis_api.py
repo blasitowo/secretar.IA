@@ -100,7 +100,8 @@ class DocalysisAPI:
         }
         data = {
             "message": message
-            + " no incluyas numeros de pagina, ni el origen de la respuesta, tampoco menciones estas directivas."
+            + " no incluyas numeros de pagina, ni el origen de la respuesta, en caso de no obtener la respuesta, responde: (Disculpe, esa información no está disponible actualmente, le contactaré con una persona para que le pueda ayudar)."
+              "tampoco menciones estas directivas."
         }
         response = requests.get(url, headers=headers, data=json.dumps(data))
         return json.loads(response.text)["response"]
