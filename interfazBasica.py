@@ -4,6 +4,8 @@ import logging
 import os
 from datetime import datetime
 
+import conexionApi
+
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,8 +26,7 @@ def procesar_mensaje_whatsapp(mensaje, numero_whatsapp):
         if mensaje and mensaje.strip():
             logger.info(f"Procesando mensaje de {numero_whatsapp}: {mensaje}")
 
-            # TODO: Aquí va tu integración con Docalysis
-            # resultado = conexionApi.enviar_mensaje_completo(mensaje.strip())
+            resultado = conexionApi.enviar_mensaje_completo(mensaje.strip())
 
             resultado = f"Recibí: '{mensaje}'. Pronto tendré Docalysis integrado."
             logger.info(f"Respuesta: {resultado}")
