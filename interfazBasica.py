@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 WHATSAPP_CONFIG = {
     'access_token': os.environ.get('WHATSAPP_ACCESS_TOKEN', 'EAAXm78sPnEgBPgDAnFZBqdPtM7hx1mPekZAxanSi6YaZBKBpBJ7CiALfIP0YdX2JoEjFG3CK1FsJs9rdtEZB5uZA5HeKywthJAiuMZBJZAkNED8uqziM7OAtahKtPmML2AO4EzpGljWZB8P7EEXRpI8nF0se8dPiTKTXzfAq1wPE9lpNgSEtG0aC5veKeyWLnZAydpk87A28aTdFZBxOkZCNHMkXpKkLPlmqIm3a1tYolZBzAMR5qAZDZD'),
-    'phone_number_id': os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '982364250'),
+    'phone_number_id': os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '736137046259055'),
     'api_version': os.environ.get('WHATSAPP_API_VERSION', 'v23.0'),
     'verify_token': os.environ.get('WHATSAPP_VERIFY_TOKEN', 'secretaria')
 }
@@ -28,7 +28,7 @@ def procesar_mensaje_whatsapp(mensaje, numero_whatsapp):
 
             resultado = conexionApi.enviar_mensaje_completo(mensaje.strip())
 
-            resultado = f"Recibí: '{mensaje}'. Pronto tendré Docalysis integrado."
+            # resultado = f"Recibí: '{mensaje}'. Pronto tendré Docalysis integrado."
             logger.info(f"Respuesta: {resultado}")
 
             return resultado
