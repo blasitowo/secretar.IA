@@ -10,14 +10,11 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# =============================================
-# CONFIGURACIÓN DIRECTA - ¡REEMPLAZA CON TUS DATOS!
-# =============================================
 WHATSAPP_CONFIG = {
-    'access_token': 'EAALw...PEGA_TU_TOKEN_REAL_AQUI...',  #  Token de acceso de Meta
-    'phone_number_id': '123456789012345',  #  Tu Phone Number ID
-    'api_version': 'v19.0',  #  Versión de la API
-    'verify_token': 'docalysis_token_2024'  #  Token para verificar webhook
+    'access_token': 'EAAXm78sPnEgBPgDAnFZBqdPtM7hx1mPekZAxanSi6YaZBKBpBJ7CiALfIP0YdX2JoEjFG3CK1FsJs9rdtEZB5uZA5HeKywthJAiuMZBJZAkNED8uqziM7OAtahKtPmML2AO4EzpGljWZB8P7EEXRpI8nF0se8dPiTKTXzfAq1wPE9lpNgSEtG0aC5veKeyWLnZAydpk87A28aTdFZBxOkZCNHMkXpKkLPlmqIm3a1tYolZBzAMR5qAZDZD',  #  Token de acceso de Meta
+    'phone_number_id': '595982364250',  #  Phone Number ID
+    'api_version': 'v23.0',  #  Versión de la API
+    'verify_token': 'secretaria'  #  Token para verificar webhook
 }
 
 
