@@ -214,7 +214,7 @@ def obtener_mensaje_no_leido(service):
     return None
 
 
-def responder_mensaje(service, destinatario, cuerpo_original, respuesta, thread_id, message_id, subject):
+def responder_mensaje(service, destinatario, cuerpo_original, respuesta, thread_id, message_id, subject, cc_email=None):
     from email.mime.text import MIMEText
     from email.utils import parseaddr, formatdate
     import base64
@@ -229,15 +229,18 @@ def responder_mensaje(service, destinatario, cuerpo_original, respuesta, thread_
     message['References'] = message_id
     message['Date'] = formatdate(localtime=True)
 
+    if cc_email:
+        message['Cc'] = cc_email
+
     raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
     body = {
         'raw': raw_message,
-        'threadId': thread_id  # Para mantener el hilo
+        'threadId': thread_id
     }
 
     service.users().messages().send(userId='me', body=body).execute()
-    print(f"Respuesta enviada a: {to_email} en el mismo hilo.")
+    print(f"Respuesta enviada a: {to_email}{' con copia a ' + cc_email if cc_email else ''}.")
 
 
 def marcar_como_leido(service, mensaje_id):
@@ -251,24 +254,6 @@ def marcar_como_leido(service, mensaje_id):
 def main():
     service = conectar_gmail()
 
-    # === NUEVO ===
-    drive_service = conectar_drive()
-    drive_folder_id = os.getenv("DRIVE_FOLDER_ID")  # Debe estar definida en Render
-
-    # Crear/verificar carpeta "Documentos Columbia" en Docalysis
-    nombre_carpeta_docalysis = "Documentos Columbia"
-
-    # Descargar y subir archivos desde Google Drive
-    if drive_folder_id:
-        descargar_y_subir_nuevos(
-            drive_service,
-            folder_id=drive_folder_id,
-            carpeta_docalysis=nombre_carpeta_docalysis
-        )
-    else:
-        print("⚠️ Variable DRIVE_FOLDER_ID no está definida, omitiendo integración con Google Drive.")
-
-    # Procesar correo
     mensaje = obtener_mensaje_no_leido(service)
     if not mensaje:
         print("No hay mensajes nuevos.")
@@ -278,6 +263,13 @@ def main():
 
     respuesta = DocalysisAPI.chat_with_directory(mensaje['mensaje'])
 
+    # Detectar si se debe copiar a otra persona
+    frase_clave = "Disculpe, esa información no está disponible actualmente, le contactaré con una persona para que le pueda ayudar"
+    cc_email = None
+
+    if frase_clave.lower() in respuesta.strip().lower():
+        cc_email = "blascoronelz16@gmail.com"  # Reemplaza con el correo real de soporte
+
     responder_mensaje(
         service,
         destinatario=mensaje['remitente'],
@@ -285,11 +277,11 @@ def main():
         respuesta=respuesta,
         thread_id=mensaje['thread_id'],
         message_id=mensaje['message_id'],
-        subject=mensaje['asunto']
+        subject=mensaje['asunto'],
+        cc_email=cc_email
     )
 
     marcar_como_leido(service, mensaje['id'])
-
 
 if __name__ == '__main__':
     main()
