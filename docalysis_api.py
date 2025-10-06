@@ -4,27 +4,20 @@ import time
 
 
 class DocalysisAPI:
-    API_KEY = "ajblfajg56w3sji555ig4oumvy5dmbp4"  # Reemplaza con tu clave real
+    API_KEY = "ajblfajg56w3sji555ig4oumvy5dmbp4"
     BASE_URL = "https://api1.docalysis.com/api/v1"
 
     @staticmethod
     def upload_file_from_url(name, url):
-        # Sube un archivo a Docalysis a partir de una URL pública, enviando
-        # nombre y enlace mediante una solicitud POST a la API.
         payload = {"name": name, "url": url}
         return DocalysisAPI.make_request("POST", "files/create", payload)
 
     @staticmethod
     def upload_local_file(file_path, desired_file_name, desired_path="Documentos a Analizar"):
-        # Sube un archivo PDF local a Docalysis usando multipart/form-data.
-        # Verifica la respuesta del servidor y maneja errores si ocurren durante la carga.
         headers = {
             "Authorization": f"Bearer {DocalysisAPI.API_KEY}",
-            # Do not set "Content-Type" here; requests will do it for multipart.
         }
         with open(file_path, "rb") as upload_this_file:
-            # Prepara campos de formulario y archivo antes de realizar la
-            # solicitud POST para crear el archivo en el servidor.
             payload = {
                 "name": (None, desired_file_name),
                 "path": (None, desired_path),
@@ -53,8 +46,6 @@ class DocalysisAPI:
 
     @staticmethod
     def make_request(method, endpoint, data=None):
-        # Realiza solicitudes HTTP genéricas (GET, POST, etc.) a la API de
-        # Docalysis con encabezados de autorización y datos JSON.
         print(f"[DocalysisAPI] Request a {endpoint}")
         headers = {
             "Authorization": f"Bearer {DocalysisAPI.API_KEY}",
@@ -70,9 +61,6 @@ class DocalysisAPI:
 
     @staticmethod
     def wait_for_docalysis_file_ready(file_id, max_retries=30):
-        # Consulta periódicamente el estado de un archivo hasta que esté
-        # procesado o se alcance el número máximo de reintentos, arrojando
-        # error si tarda demasiado.
         for attempt in range(max_retries):
             info = DocalysisAPI.make_request("GET", f"files/{file_id}/info")
             if info.get("file", {}).get("processed_state") == "processed":
@@ -83,16 +71,12 @@ class DocalysisAPI:
 
     @staticmethod
     def chat_with_file(file_id, message):
-        # Envía un mensaje de chat a un archivo específico en Docalysis
-        # y devuelve la respuesta generada por el sistema.
         payload = {"message": message}
         response = DocalysisAPI.make_request("GET", f"files/{file_id}/chat", payload)
         return response.get("response", "No hubo respuesta del chat.")
 
     @staticmethod
     def chat_with_directory(message):
-        # Envía un mensaje a un directorio completo en Docalysis para obtener
-        # respuestas sin incluir datos irrelevantes como páginas u origen.
         url = "https://api1.docalysis.com/api/v1/directories/ddy618/chat"
         headers = {
             "Authorization": "Bearer ajblfajg56w3sji555ig4oumvy5dmbp4",
@@ -105,3 +89,28 @@ class DocalysisAPI:
         }
         response = requests.get(url, headers=headers, data=json.dumps(data))
         return json.loads(response.text)["response"]
+
+    @staticmethod
+    def ensure_directory_exists(nombre_carpeta):
+        print(f"[DocalysisAPI] Verificando existencia de carpeta '{nombre_carpeta}'...")
+
+        try:
+            carpetas = DocalysisAPI.make_request("GET", "directories").get("directories", [])
+            for carpeta in carpetas:
+                if carpeta["name"].strip().lower() == nombre_carpeta.strip().lower():
+                    print(f"[DocalysisAPI] Carpeta encontrada: {carpeta['name']}")
+                    return carpeta["name"]
+        except Exception as e:
+            print(f"[DocalysisAPI] Error obteniendo carpetas: {e}")
+
+        print(f"[DocalysisAPI] Carpeta no encontrada. Creando '{nombre_carpeta}'...")
+        try:
+            response = DocalysisAPI.make_request("POST", "directories/create", {"name": nombre_carpeta})
+            if response.get("success"):
+                print(f"[DocalysisAPI] Carpeta '{nombre_carpeta}' creada exitosamente.")
+                return nombre_carpeta
+            else:
+                raise Exception(response.get("error", "No se pudo crear la carpeta"))
+        except Exception as e:
+            print(f"[DocalysisAPI] Error creando carpeta: {e}")
+            raise
