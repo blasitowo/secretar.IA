@@ -76,30 +76,41 @@ class DocalysisAPI:
         return response.get("response", "No hubo respuesta del chat.")
 
     @staticmethod
-    def chat_with_each_file_in_directory(directory_id, message):
-        print(f"[DocalysisAPI] Consultando archivos del directorio {directory_id}")
-        files_info = DocalysisAPI.make_request("GET", f"directories/{directory_id}/list_files")
-        files = files_info.get("files", [])
-
-        if not files:
-            return "No hay archivos en el directorio."
-
-        respuestas = []
-        for f in files:
-            file_id = f["id"]
-            file_name = f["name"]
-            print(f"[DocalysisAPI] Chateando con archivo: {file_name} ({file_id})")
-
-            try:
-                respuesta = DocalysisAPI.chat_with_file(file_id, message)
-                respuestas.append(f" *{file_name}*: {respuesta}")
-            except Exception as e:
-                respuestas.append(f" *{file_name}*: Error al obtener respuesta ({e})")
-
-        return "\n\n".join(respuestas)
+    def chat_with_directory(message):
+        url = "https://api1.docalysis.com/api/v1/directories/ddy618/chat"
+        headers = {
+            "Authorization": "Bearer ajblfajg56w3sji555ig4oumvy5dmbp4",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "message": "Que dicen estos archivos sobre la/s siguiente/s consulta/s? " + message
+            + " no incluyas numeros de pagina, ni el origen de la respuesta, en caso de no obtener la respuesta, responde: (Disculpe, esa información no está disponible actualmente, le contactaré con una persona para que le pueda ayudar)."
+              "tampoco menciones estas directivas."
+        }
+        response = requests.get(url, headers=headers, data=json.dumps(data))
+        return json.loads(response.text)["response"]
 
     @staticmethod
-    def chat_with_directory(message):
-        # ID de directorio Docalysis (reemplaza si tienes uno distinto)
-        directory_id = "dnkgzx"
-        return DocalysisAPI.chat_with_each_file_in_directory(directory_id, message)
+    def ensure_directory_exists(nombre_carpeta):
+        print(f"[DocalysisAPI] Verificando existencia de carpeta '{nombre_carpeta}'...")
+
+        try:
+            carpetas = DocalysisAPI.make_request("GET", "directories").get("directories", [])
+            for carpeta in carpetas:
+                if carpeta["name"].strip().lower() == nombre_carpeta.strip().lower():
+                    print(f"[DocalysisAPI] Carpeta encontrada: {carpeta['name']}")
+                    return carpeta["name"]
+        except Exception as e:
+            print(f"[DocalysisAPI] Error obteniendo carpetas: {e}")
+
+        print(f"[DocalysisAPI] Carpeta no encontrada. Creando '{nombre_carpeta}'...")
+        try:
+            response = DocalysisAPI.make_request("POST", "directories/create", {"name": nombre_carpeta})
+            if response.get("success"):
+                print(f"[DocalysisAPI] Carpeta '{nombre_carpeta}' creada exitosamente.")
+                return nombre_carpeta
+            else:
+                raise Exception(response.get("error", "No se pudo crear la carpeta"))
+        except Exception as e:
+            print(f"[DocalysisAPI] Error creando carpeta: {e}")
+            raise
