@@ -21,7 +21,7 @@ def tarea_respuesta_email():
         except Exception as e:
             logger.error(f" Error ejecutando el bot de correos: {e}")
 
-        time.sleep(15 * 60)  # Espera 15 minutos
+        time.sleep(1 * 60)  # Espera 15 minutos
 
 
 if __name__ == "__main__":
