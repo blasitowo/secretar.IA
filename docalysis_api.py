@@ -13,7 +13,7 @@ class DocalysisAPI:
         return DocalysisAPI.make_request("POST", "files/create", payload)
 
     @staticmethod
-    def upload_local_file(file_path, desired_file_name, desired_path="Documentos a Analizar"):
+    def upload_local_file(file_path, desired_file_name, desired_path="Documentos Columbia"):
         headers = {
             "Authorization": f"Bearer {DocalysisAPI.API_KEY}",
         }
