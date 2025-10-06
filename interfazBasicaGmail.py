@@ -220,7 +220,9 @@ def responder_mensaje(service, destinatario, cuerpo_original, respuesta, thread_
     import base64
 
     to_email = parseaddr(destinatario)[1]
-    cuerpo_respuesta = f"""Hola,\n\n{respuesta}\n\nAtentamente,\nAsistente automático"""
+    cc_header = f"\nCC: {cc_email}" if cc_email else ""
+
+    cuerpo_respuesta = f"""Hola,\n\n{respuesta}\n\n--- Mensaje original ---\n{cuerpo_original}\n\nAtentamente,\nAsistente automático{cc_header}"""
 
     message = MIMEText(cuerpo_respuesta)
     message['To'] = to_email
@@ -236,11 +238,13 @@ def responder_mensaje(service, destinatario, cuerpo_original, respuesta, thread_
 
     body = {
         'raw': raw_message,
-        'threadId': thread_id
+        'threadId': thread_id  # Para mantener el hilo
     }
 
     service.users().messages().send(userId='me', body=body).execute()
-    print(f"Respuesta enviada a: {to_email}{' con copia a ' + cc_email if cc_email else ''}.")
+    print(f"Respuesta enviada a: {to_email} en el mismo hilo.")
+    if cc_email:
+        print(f"Se copió a: {cc_email}")
 
 
 def marcar_como_leido(service, mensaje_id):
