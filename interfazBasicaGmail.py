@@ -2,14 +2,17 @@ import os
 import os.path
 import base64
 import re
+import io
+import hashlib
 from email import message_from_bytes
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 from docalysis_api import DocalysisAPI
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.send']
+SCOPES = ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/drive.readonly']
 
 
 def limpiar_mensaje(texto):
@@ -57,6 +60,73 @@ def conectar_gmail():
                 token.write(creds.to_json())
 
     return build('gmail', 'v1', credentials=creds)
+
+def conectar_drive():
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    return build('drive', 'v3', credentials=creds)
+
+
+def obtener_archivos_en_drive(drive_service, folder_id):
+    archivos = []
+    query = f"'{folder_id}' in parents and mimeType='application/pdf' and trashed = false"
+    response = drive_service.files().list(q=query, fields="files(id, name, modifiedTime)").execute()
+    archivos = response.get('files', [])
+    return archivos
+
+
+def calcular_hash_archivo(file_path):
+    hash_sha256 = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_sha256.update(chunk)
+    return hash_sha256.hexdigest()
+
+
+def descargar_y_subir_nuevos(drive_service, folder_id, carpeta_local="descargados_drive", carpeta_docalysis=None):
+    if not os.path.exists(carpeta_local):
+        os.makedirs(carpeta_local)
+
+    archivos = obtener_archivos_en_drive(drive_service, folder_id)
+    hash_existentes = set()
+
+    for archivo in archivos:
+        file_id = archivo["id"]
+        nombre = archivo["name"]
+        destino = os.path.join(carpeta_local, nombre)
+
+        # Evita descargar si ya existe localmente
+        if os.path.exists(destino):
+            hash_existentes.add(calcular_hash_archivo(destino))
+            print(f"[SKIP] Ya existe localmente: {nombre}")
+            continue
+
+        print(f"[DESCARGANDO] {nombre}")
+        request = drive_service.files().get_media(fileId=file_id)
+        fh = io.FileIO(destino, "wb")
+        downloader = MediaIoBaseDownload(fh, request)
+
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
+
+        hash_archivo = calcular_hash_archivo(destino)
+
+        if hash_archivo in hash_existentes:
+            print(f"[SKIP] Archivo duplicado por hash: {nombre}")
+            os.remove(destino)
+            continue
+
+        # Subir a Docalysis
+        print(f"[UPLOAD] Subiendo {nombre} a Docalysis...")
+        respuesta = DocalysisAPI.upload_local_file(destino, desired_file_name=nombre, desired_path=carpeta_docalysis)
+        if respuesta:
+            print(f"[OK] Subido {nombre} a Docalysis.")
+        else:
+            print(f"[ERROR] Fallo al subir {nombre}")
+
+        hash_existentes.add(hash_archivo)
 
 
 def es_correo_personal(mime_msg):
