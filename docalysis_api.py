@@ -15,7 +15,7 @@ class DocalysisAPI:
         return DocalysisAPI.make_request("POST", "files/create", payload)
 
     @staticmethod
-    def upload_local_file(file_path, desired_file_name, desired_path=None):
+    def upload_local_file(file_path, desired_file_name, desired_path="Documentos a Analizar"):
         # Sube un archivo PDF local a Docalysis usando multipart/form-data.
         # Verifica la respuesta del servidor y maneja errores si ocurren durante la carga.
         headers = {
