@@ -77,7 +77,7 @@ class DocalysisAPI:
 
     @staticmethod
     def chat_with_directory(message):
-        url = "https://api1.docalysis.com/api/v1/directories/ddy618/chat"
+        url = "https://api1.docalysis.com/api/v1/directories/dnkgzx/chat"
         headers = {
             "Authorization": "Bearer ajblfajg56w3sji555ig4oumvy5dmbp4",
             "Content-Type": "application/json",
