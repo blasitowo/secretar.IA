@@ -89,28 +89,3 @@ class DocalysisAPI:
         }
         response = requests.get(url, headers=headers, data=json.dumps(data))
         return json.loads(response.text)["response"]
-
-    @staticmethod
-    def ensure_directory_exists(nombre_carpeta):
-        print(f"[DocalysisAPI] Verificando existencia de carpeta '{nombre_carpeta}'...")
-
-        try:
-            carpetas = DocalysisAPI.make_request("GET", "directories").get("directories", [])
-            for carpeta in carpetas:
-                if carpeta["name"].strip().lower() == nombre_carpeta.strip().lower():
-                    print(f"[DocalysisAPI] Carpeta encontrada: {carpeta['name']}")
-                    return carpeta["name"]
-        except Exception as e:
-            print(f"[DocalysisAPI] Error obteniendo carpetas: {e}")
-
-        print(f"[DocalysisAPI] Carpeta no encontrada. Creando '{nombre_carpeta}'...")
-        try:
-            response = DocalysisAPI.make_request("POST", "directories/create", {"name": nombre_carpeta})
-            if response.get("success"):
-                print(f"[DocalysisAPI] Carpeta '{nombre_carpeta}' creada exitosamente.")
-                return nombre_carpeta
-            else:
-                raise Exception(response.get("error", "No se pudo crear la carpeta"))
-        except Exception as e:
-            print(f"[DocalysisAPI] Error creando carpeta: {e}")
-            raise

@@ -257,14 +257,13 @@ def main():
 
     # Crear/verificar carpeta "Documentos Columbia" en Docalysis
     nombre_carpeta_docalysis = "Documentos Columbia"
-    carpeta_docalysis = DocalysisAPI.ensure_directory_exists(nombre_carpeta_docalysis)
 
     # Descargar y subir archivos desde Google Drive
     if drive_folder_id:
         descargar_y_subir_nuevos(
             drive_service,
             folder_id=drive_folder_id,
-            carpeta_docalysis=carpeta_docalysis
+            carpeta_docalysis=nombre_carpeta_docalysis
         )
     else:
         print("⚠️ Variable DRIVE_FOLDER_ID no está definida, omitiendo integración con Google Drive.")
