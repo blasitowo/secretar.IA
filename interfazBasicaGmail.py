@@ -272,7 +272,7 @@ def main():
     cc_email = None
 
     if frase_clave.lower() in respuesta.strip().lower():
-        cc_email = "ahilinreyes5@gmail.com"  # Reemplaza con el correo real de soporte
+        cc_email = "ahilinreyes5@gmail.com"
 
     responder_mensaje(
         service,
