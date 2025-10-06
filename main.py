@@ -16,7 +16,7 @@ def tarea_respuesta_email():
     while True:
         try:
             logger.info("⏳ Ejecutando verificación de correos...")
-            subprocess.run(["python", "gmail_docalysis_responder.py"])
+            subprocess.run(["python", "interfazBasicaGmail.py"])
             logger.info(" Verificación de correos terminada.")
         except Exception as e:
             logger.error(f" Error ejecutando el bot de correos: {e}")
