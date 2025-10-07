@@ -1,24 +1,28 @@
+# Importa módulos necesarios de Flask, HTTP, logging, sistema de archivos y fechas
 from flask import Flask, request, jsonify
 import requests
 import logging
 import os
 from datetime import datetime
 
+# Importa módulo interno para conexión a la API (debe estar definido en otro archivo llamado conexionApi.py)
 import conexionApi
 
-# Configuración de logging
+# Configura el sistema de logging a nivel INFO
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Función auxiliar para obtener una variable de entorno obligatoria
 def get_env_variable(name):
     value = os.environ.get(name)
     if not value:
         raise EnvironmentError(f"La variable de entorno '{name}' es obligatoria y no está definida.")
     return value
 
+# Inicializa la aplicación Flask
 app = Flask(__name__)
 
-# Configuración cargada desde variables de entorno
+# Carga configuración de WhatsApp desde variables de entorno
 WHATSAPP_CONFIG = {
     'access_token': get_env_variable('WHATSAPP_ACCESS_TOKEN'),
     'phone_number_id': get_env_variable('WHATSAPP_PHONE_NUMBER_ID'),
@@ -26,11 +30,12 @@ WHATSAPP_CONFIG = {
     'verify_token': get_env_variable('WHATSAPP_VERIFY_TOKEN')
 }
 
+# Procesa el mensaje recibido por WhatsApp y llama a la API que da la respuesta
 def procesar_mensaje_whatsapp(mensaje, numero_whatsapp):
     try:
         if mensaje and mensaje.strip():
             logger.info(f"Procesando mensaje de {numero_whatsapp}: {mensaje}")
-            resultado = conexionApi.enviar_mensaje_completo(mensaje.strip())
+            resultado = conexionApi.enviar_mensaje_completo(mensaje.strip())  # Llama a la función que maneja el mensaje
             logger.info(f"Respuesta: {resultado}")
             return resultado
         else:
@@ -39,9 +44,10 @@ def procesar_mensaje_whatsapp(mensaje, numero_whatsapp):
         logger.error(f"Error procesando mensaje: {e}")
         return "Error procesando tu mensaje. Intenta nuevamente."
 
+# Envía una respuesta por WhatsApp usando la API de Meta
 def enviar_respuesta_whatsapp(numero_destino, mensaje):
     try:
-        numero_limpio = ''.join(filter(str.isdigit, numero_destino))
+        numero_limpio = ''.join(filter(str.isdigit, numero_destino))  # Elimina caracteres no numéricos del número
         url = f"https://graph.facebook.com/{WHATSAPP_CONFIG['api_version']}/{WHATSAPP_CONFIG['phone_number_id']}/messages"
 
         headers = {
@@ -70,21 +76,24 @@ def enviar_respuesta_whatsapp(numero_destino, mensaje):
         logger.error(f"Error enviando mensaje: {e}")
         return False
 
+# Ruta principal del webhook de WhatsApp
 @app.route('/webhook/whatsapp', methods=['GET', 'POST'])
 def webhook_whatsapp():
     if request.method == 'GET':
+        # Validación del webhook desde Meta
         verify_token = request.args.get('hub.verify_token')
         challenge = request.args.get('hub.challenge')
         logger.info(f"Verificando: {verify_token}")
 
         if verify_token == WHATSAPP_CONFIG['verify_token']:
             logger.info("Webhook verificado")
-            return challenge
+            return challenge  # Devuelve challenge si el token es correcto
         else:
             logger.warning("Token incorrecto")
             return 'Error de verificación', 403
 
     elif request.method == 'POST':
+        # Procesa el mensaje entrante
         data = request.get_json()
         logger.info(f"Mensaje recibido: {data}")
 
@@ -107,7 +116,7 @@ def webhook_whatsapp():
                                         else:
                                             logger.error("Error enviando")
 
-                                        return jsonify({'status': 'success'})
+                                        return jsonify({'status': 'success'})  # Respuesta HTTP al webhook
 
             return jsonify({'status': 'success', 'message': 'Mensaje recibido'})
 
@@ -115,6 +124,7 @@ def webhook_whatsapp():
             logger.error(f"Error procesando mensaje: {e}")
             return jsonify({'status': 'error', 'message': str(e)}), 500
 
+# Ruta base para verificar si el bot está activo
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -135,6 +145,7 @@ def home():
             'instructions': 'Usa POST en /webhook/whatsapp para mensajes de WhatsApp'
         })
 
+# Ruta de verificación de salud (health check)
 @app.route('/health', methods=['GET', 'POST'])
 def health_check():
     return jsonify({
@@ -143,6 +154,7 @@ def health_check():
         'timestamp': datetime.now().isoformat()
     })
 
+# Ruta de prueba para POST/GET manuales
 @app.route('/test', methods=['GET', 'POST'])
 def test_endpoint():
     if request.method == 'POST':
@@ -162,6 +174,7 @@ def test_endpoint():
             'timestamp': datetime.now().isoformat()
         })
 
+# Ruta para enviar un mensaje manualmente (útil para testing externo)
 @app.route('/send-message', methods=['POST'])
 def send_message():
     try:
@@ -194,12 +207,13 @@ def send_message():
         logger.error(f"Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+# Punto de entrada principal del script
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
+    port = int(os.environ.get('PORT', 10000))  # Usa el puerto definido o el 10000 por defecto
     logger.info("=" * 50)
     logger.info("BOT INICIADO - LISTO PARA POST Y GET")
     logger.info(f"Webhook: /webhook/whatsapp")
     logger.info(f"Puerto: {port}")
     logger.info("=" * 50)
 
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False)  # Inicia el servidor Flask
